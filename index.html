@@ -1,0 +1,1625 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BRISE Dengue — Previsão com Inteligência Artificial</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='4' fill='%230b1a0f'/><text x='16' y='22' font-family='sans-serif' font-weight='400' font-size='18' fill='%23a6e22e' text-anchor='middle'>B</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat+Alternates:wght@400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        /* ═══════════════════════════════════════
+           CSS VARIABLES & RESET — BRISE DNA
+           ═══════════════════════════════════════ */
+        :root {
+            /* Base escura (hue 140°) */
+            --bg-primary: #0b1a0f;
+            --bg-secondary: #0f2214;
+            --bg-elevated: #132a18;
+            --bg-light: #162e1c;
+
+            /* Texto */
+            --text-primary: #e2ebe4;
+            --text-secondary: #9ab5a3;
+            --text-muted: #4a6b50;
+
+            /* Acento cítrico */
+            --accent: #a6e22e;
+            --accent-soft: rgba(166, 226, 46, 0.12);
+            --accent-glow: rgba(166, 226, 46, 0.06);
+
+            /* Terracota (hue 20°) */
+            --terra: hsl(20, 70%, 55%);
+            --terra-soft: hsla(20, 70%, 55%, 0.12);
+            --terra-glow: hsla(20, 70%, 55%, 0.25);
+            --terra-muted: hsl(20, 18%, 35%);
+            --terra-border: hsl(20, 32%, 17%);
+            --terra-border-light: hsl(20, 30%, 23%);
+
+            /* Bordas */
+            --border: #1e3a24;
+            --border-light: #2a4d32;
+
+            /* Seção clara */
+            --light-bg: hsl(140, 15%, 94%);
+            --light-bg-alt: hsl(140, 12%, 89%);
+            --light-text: hsl(140, 30%, 12%);
+            --light-text-secondary: hsl(140, 12%, 38%);
+            --light-text-muted: hsl(140, 10%, 55%);
+            --light-border: hsl(140, 12%, 82%);
+
+            /* Tipografia */
+            --font-logo: 'Montserrat Alternates', sans-serif;
+            --font-display: 'Space Grotesk', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --font-body: 'IBM Plex Sans', sans-serif;
+        }
+
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            font-size: 16px;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+            font-weight: 300;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        ::selection {
+            background: var(--accent-soft);
+            color: #ffffff;
+        }
+
+        /* ═══════════════════════════════════════
+           SCROLLBAR
+           ═══════════════════════════════════════ */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-primary); }
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 0;
+        }
+
+        /* ═══════════════════════════════════════
+           BACKGROUND TEXTURE — Grid de cruzinhas
+           ═══════════════════════════════════════ */
+        .bg-grid {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E%3Cline x1='39' y1='45' x2='51' y2='45' stroke='%23e2ebe4' stroke-width='1.2'/%3E%3Cline x1='45' y1='39' x2='45' y2='51' stroke='%23e2ebe4' stroke-width='1.2'/%3E%3C/svg%3E");
+            background-size: 90px 90px;
+            opacity: 0.12;
+        }
+
+        /* ═══════════════════════════════════════
+           NAVIGATION — BRISE DNA
+           ═══════════════════════════════════════ */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 0 40px;
+            transition: all 0.4s ease;
+            backdrop-filter: blur(20px);
+            background: rgba(11, 26, 15, 0.88);
+            border-bottom: 1px solid transparent;
+            transform: translateY(0);
+        }
+
+        .nav.scrolled {
+            border-bottom-color: var(--border);
+            background: rgba(11, 26, 15, 0.95);
+            padding: 0 40px;
+        }
+
+        .nav.nav-hidden {
+            transform: translateY(-100%);
+        }
+
+        .nav-inner {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 72px;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+
+        .nav-logo {
+            font-family: var(--font-logo);
+            font-size: 1.56rem;
+            font-weight: 400;
+            letter-spacing: 0.12em;
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .nav-separator {
+            width: 1px;
+            height: 24px;
+            background: var(--border);
+        }
+
+        .nav-tagline {
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+            font-weight: 400;
+            color: var(--text-muted);
+        }
+
+        .nav-tagline .cursor {
+            color: var(--accent);
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 0.25rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-family: var(--font-body);
+            font-size: 0.85rem;
+            font-weight: 400;
+            padding: 0.5rem 1rem;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-primary);
+        }
+
+        .nav-links a.active {
+            color: var(--accent);
+        }
+
+        .nav-hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 4px;
+        }
+
+        .nav-hamburger span {
+            width: 24px;
+            height: 2px;
+            background: var(--text-secondary);
+            transition: all 0.3s ease;
+        }
+
+        /* ═══════════════════════════════════════
+           HERO SECTION
+           ═══════════════════════════════════════ */
+        .hero {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .hero-bg {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+        }
+
+        .hero-bg img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            filter: saturate(0.8);
+            transform: scale(1.15);
+            animation: heroImageReveal 2s cubic-bezier(0.25, 0.46, 0.45, 0.94) 100ms forwards;
+        }
+
+        @keyframes heroImageReveal {
+            to {
+                opacity: 0.2;
+                transform: scale(1);
+            }
+        }
+
+        .hero-bg::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(
+                    180deg,
+                    rgba(11,26,15,0.3) 0%,
+                    rgba(11,26,15,0.15) 30%,
+                    rgba(11,26,15,0.7) 50%,
+                    rgba(11,26,15,0.92) 70%,
+                    var(--bg-primary) 100%
+                ),
+                linear-gradient(
+                    90deg,
+                    rgba(11,26,15,0.7) 0%,
+                    rgba(11,26,15,0.1) 50%,
+                    rgba(11,26,15,0.3) 100%
+                );
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 8rem 2rem 4rem;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 3rem;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 1rem;
+            background: var(--accent-soft);
+            border: 1px solid rgba(166, 226, 46, 0.25);
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            font-weight: 500;
+            color: var(--accent);
+            width: fit-content;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        .hero-badge::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: var(--accent);
+            animation: glowPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes glowPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(166, 226, 46, 0.4); }
+            50% { box-shadow: 0 0 20px 0 rgba(166, 226, 46, 0.1); }
+        }
+
+        .hero h1 {
+            font-family: var(--font-display);
+            font-size: clamp(3.15rem, 7.9vw, 5.04rem);
+            font-weight: 300;
+            line-height: 1.15;
+            letter-spacing: -0.03em;
+            margin-top: 1rem;
+            max-width: 900px;
+            opacity: 0;
+            transform: translateY(24px);
+            animation: fadeInUp 700ms ease-out 600ms forwards;
+        }
+
+        .hero h1 strong {
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hero-description {
+            font-family: var(--font-body);
+            font-size: 1.14rem;
+            font-weight: 300;
+            color: var(--text-secondary);
+            max-width: 680px;
+            line-height: 1.9;
+            opacity: 0;
+            transform: translateY(24px);
+            animation: fadeInUp 700ms ease-out 900ms forwards;
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 3rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+            opacity: 0;
+            transform: translateY(24px);
+            animation: fadeInUp 700ms ease-out 1100ms forwards;
+        }
+
+        .hero-stat {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .hero-stat-value {
+            font-size: 2rem;
+            font-weight: 500;
+            font-family: var(--font-mono);
+            color: var(--accent);
+        }
+
+        .hero-stat-label {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-weight: 500;
+        }
+
+        .hero-scroll-indicator {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .hero-scroll-indicator span {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            font-weight: 500;
+        }
+
+        .scroll-arrow {
+            width: 20px;
+            height: 20px;
+            border-right: 1px solid var(--text-muted);
+            border-bottom: 1px solid var(--text-muted);
+            transform: rotate(45deg);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(10px); }
+        }
+
+        /* ═══════════════════════════════════════
+           SECTIONS COMMON
+           ═══════════════════════════════════════ */
+        .section {
+            position: relative;
+            z-index: 1;
+            padding: 120px 2rem;
+        }
+
+        .section-inner {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .section-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        .section-label::before {
+            content: '//';
+            color: var(--text-muted);
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: clamp(1.4rem, 3vw, 1.8rem);
+            font-weight: 400;
+            line-height: 1.35;
+            letter-spacing: -0.02em;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-description {
+            font-family: var(--font-body);
+            font-size: 1.05rem;
+            font-weight: 300;
+            color: var(--text-secondary);
+            max-width: 640px;
+            line-height: 1.85;
+        }
+
+        /* ═══════════════════════════════════════
+           CHALLENGE SECTION
+           ═══════════════════════════════════════ */
+        .challenge-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 64px;
+            margin-top: 3rem;
+            align-items: center;
+        }
+
+        .challenge-image {
+            overflow: hidden;
+            border: 1px solid var(--border);
+            position: relative;
+        }
+
+        .challenge-image img {
+            width: 100%;
+            display: block;
+            transition: transform 0.6s ease;
+        }
+
+        .challenge-image:hover img {
+            transform: scale(1.03);
+        }
+
+        .challenge-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-top: 2px solid var(--terra);
+            padding: 32px;
+            transition: border-color 300ms ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            border-color: var(--border-light);
+            border-top-color: var(--terra);
+        }
+
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .card-icon.red { color: var(--terra); }
+        .card-icon.orange { color: var(--accent); }
+        .card-icon.yellow { color: var(--terra); }
+
+        .card h3 {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .card p {
+            font-size: 0.95rem;
+            font-weight: 300;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .stat-highlight {
+            font-family: var(--font-mono);
+            font-weight: 500;
+            color: var(--accent);
+        }
+
+        /* ═══════════════════════════════════════
+           SOLUTION SECTION
+           ═══════════════════════════════════════ */
+        .solution-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 64px;
+            margin-top: 3rem;
+            align-items: center;
+        }
+
+        .solution-features {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .feature {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .feature-number {
+            font-family: var(--font-mono);
+            font-weight: 500;
+            font-size: 0.72rem;
+            color: var(--accent);
+            background: var(--accent-soft);
+            border: 1px solid rgba(166, 226, 46, 0.2);
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .feature h3 {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 0.35rem;
+        }
+
+        .feature p {
+            font-size: 0.95rem;
+            font-weight: 300;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .solution-image {
+            overflow: hidden;
+            border: 1px solid var(--border);
+            position: relative;
+        }
+
+        .solution-image img {
+            width: 100%;
+            display: block;
+        }
+
+        /* ═══════════════════════════════════════
+           TECH CODE BLOCK (decorative)
+           ═══════════════════════════════════════ */
+        .code-block {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            padding: 1.5rem;
+            margin-top: 2rem;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            font-weight: 400;
+            line-height: 1.8;
+            overflow-x: auto;
+        }
+
+        .code-block .comment { color: var(--text-muted); }
+        .code-block .keyword { color: var(--accent); }
+        .code-block .string { color: var(--terra); }
+        .code-block .function { color: var(--text-primary); }
+        .code-block .number { color: var(--accent); }
+
+        /* ═══════════════════════════════════════
+           SECTION DIVIDER — BRISE DNA
+           ═══════════════════════════════════════ */
+        .page-divider {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 3rem 2rem;
+        }
+
+        .page-divider-line {
+            max-width: 1000px;
+            margin: 0 auto;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent), var(--terra), transparent);
+            opacity: 0.4;
+            position: relative;
+        }
+
+        .page-divider-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--bg-primary);
+            padding: 0.5rem 1.5rem;
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+        }
+
+        /* ═══════════════════════════════════════
+           DATA HEADER
+           ═══════════════════════════════════════ */
+        .data-header {
+            position: relative;
+            overflow: hidden;
+            padding: 120px 2rem;
+        }
+
+        .data-header-bg {
+            position: absolute;
+            inset: 0;
+        }
+
+        .data-header-bg img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.12;
+        }
+
+        .data-header-bg::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, var(--bg-primary), rgba(15,34,20,0.85), var(--bg-primary));
+        }
+
+        .data-header-content {
+            position: relative;
+            z-index: 1;
+            max-width: 1000px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .data-header-content .section-label {
+            justify-content: center;
+        }
+
+        .data-header-content .section-description {
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        /* Data sources */
+        .data-sources-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 64px;
+            margin-top: 3rem;
+            align-items: center;
+        }
+
+        .source-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .source-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            padding: 32px;
+            transition: border-color 300ms ease;
+            position: relative;
+        }
+
+        .source-card:hover {
+            border-color: var(--border-light);
+        }
+
+        .source-card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .source-card-tag {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            font-weight: 500;
+            padding: 0.25rem 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .source-card-tag.epi {
+            background: var(--terra-soft);
+            color: var(--terra);
+            border: 1px solid var(--terra-border-light);
+        }
+
+        .source-card-tag.clima {
+            background: var(--accent-soft);
+            color: var(--accent);
+            border: 1px solid rgba(166, 226, 46, 0.2);
+        }
+
+        .source-card h3 {
+            font-family: var(--font-display);
+            font-size: 1.05rem;
+            font-weight: 500;
+        }
+
+        .source-card p {
+            font-size: 0.95rem;
+            font-weight: 300;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* ═══════════════════════════════════════
+           PCA SECTION
+           ═══════════════════════════════════════ */
+        .pca-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 64px;
+            margin-top: 3rem;
+            align-items: start;
+        }
+
+        .pca-components {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .pca-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            padding: 24px 32px;
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+            transition: border-color 300ms ease;
+        }
+
+        .pca-card:hover {
+            border-color: var(--border-light);
+        }
+
+        .pca-badge {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            font-weight: 500;
+            padding: 0.35rem 0.65rem;
+            flex-shrink: 0;
+            text-align: center;
+            min-width: 42px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .pca-badge.pc1 { background: var(--accent-soft); color: var(--accent); border: 1px solid rgba(166, 226, 46, 0.25); }
+        .pca-badge.pc2 { background: var(--terra-soft); color: var(--terra); border: 1px solid var(--terra-border-light); }
+        .pca-badge.pc3 { background: var(--terra-soft); color: var(--terra); border: 1px solid var(--terra-border-light); }
+        .pca-badge.pc4 { background: var(--accent-soft); color: var(--accent); border: 1px solid rgba(166, 226, 46, 0.25); }
+        .pca-badge.pc5 { background: var(--accent-soft); color: var(--accent); border: 1px solid rgba(166, 226, 46, 0.25); }
+
+        .pca-card h4 {
+            font-family: var(--font-display);
+            font-size: 0.95rem;
+            font-weight: 500;
+            margin-bottom: 0.3rem;
+        }
+
+        .pca-card p {
+            font-size: 0.85rem;
+            font-weight: 300;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .pca-image {
+            overflow: hidden;
+            border: 1px solid var(--border);
+            position: sticky;
+            top: 100px;
+        }
+
+        .pca-image img {
+            width: 100%;
+            display: block;
+        }
+
+        /* ═══════════════════════════════════════
+           CONCLUSION
+           ═══════════════════════════════════════ */
+        .conclusion-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 64px;
+            margin-top: 3rem;
+            align-items: center;
+        }
+
+        .conclusion-image {
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .conclusion-image img {
+            width: 100%;
+            display: block;
+        }
+
+        .conclusion-points {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .conclusion-point {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .conclusion-point-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 1.1rem;
+        }
+
+        .conclusion-point-icon.accent { background: var(--accent-soft); }
+        .conclusion-point-icon.terra { background: var(--terra-soft); }
+
+        .conclusion-point h3 {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 0.35rem;
+        }
+
+        .conclusion-point p {
+            font-size: 0.95rem;
+            font-weight: 300;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* ═══════════════════════════════════════
+           IMPACT / CTA SECTION
+           ═══════════════════════════════════════ */
+        .impact-banner {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 120px 2rem;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .impact-banner h2 {
+            font-family: var(--font-display);
+            font-size: clamp(1.2rem, 3vw, 1.7rem);
+            font-weight: 300;
+            letter-spacing: -0.02em;
+            margin-bottom: 1rem;
+        }
+
+        .impact-banner h2 strong {
+            font-weight: 500;
+        }
+
+        .impact-banner p {
+            font-family: var(--font-body);
+            font-size: 1.05rem;
+            font-weight: 300;
+            color: var(--text-secondary);
+            max-width: 520px;
+            margin: 0 auto;
+            line-height: 1.85;
+        }
+
+        /* ═══════════════════════════════════════
+           FOOTER
+           ═══════════════════════════════════════ */
+        .footer {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 3rem 2rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .footer p {
+            font-family: var(--font-body);
+            font-size: 0.85rem;
+            font-weight: 300;
+            color: var(--text-muted);
+        }
+
+        .footer .tech-stack {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .footer .tech-tag {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            background: var(--accent-glow);
+            border: 1px solid var(--border);
+            padding: 0.3rem 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        /* ═══════════════════════════════════════
+           SCROLL REVEAL ANIMATIONS
+           ═══════════════════════════════════════ */
+        .reveal {
+            opacity: 0;
+            transform: translateY(24px);
+            transition: opacity 700ms ease-out, transform 700ms ease-out;
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .reveal-left {
+            opacity: 0;
+            transform: translateX(-30px);
+            transition: opacity 700ms ease-out, transform 700ms ease-out;
+        }
+
+        .reveal-left.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .reveal-delay-1 { transition-delay: 0.1s; }
+        .reveal-delay-2 { transition-delay: 0.2s; }
+        .reveal-delay-3 { transition-delay: 0.3s; }
+        .reveal-delay-4 { transition-delay: 0.4s; }
+
+        /* ═══════════════════════════════════════
+           RESPONSIVE
+           ═══════════════════════════════════════ */
+        @media (max-width: 968px) {
+            .section { padding: 80px 2rem; }
+            .data-header { padding: 80px 2rem; }
+            .impact-banner { padding: 80px 2rem; }
+
+            .challenge-grid,
+            .solution-grid,
+            .data-sources-grid,
+            .pca-grid,
+            .conclusion-grid {
+                grid-template-columns: 1fr;
+                gap: 32px;
+            }
+
+            .challenge-grid .challenge-image { order: -1; }
+            .solution-grid .solution-image { order: -1; }
+
+            .pca-image { position: relative; top: 0; order: -1; }
+
+            .hero-stats { gap: 2rem; }
+        }
+
+        @media (max-width: 640px) {
+            .nav { padding: 0 24px; }
+            .nav-links { display: none; }
+            .nav-hamburger { display: flex; }
+            .nav-separator, .nav-tagline { display: none; }
+
+            .nav-links.open {
+                display: flex;
+                flex-direction: column;
+                position: absolute;
+                top: 72px;
+                left: 0;
+                right: 0;
+                background: rgba(11, 26, 15, 0.97);
+                backdrop-filter: blur(20px);
+                padding: 1rem;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .hero-content { padding-top: 6rem; }
+            .hero h1 { font-size: 2rem; }
+            .section { padding: 80px 24px; }
+
+            .hero-stats {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+
+<!-- ═══════════════════════════════════════
+     NAVIGATION
+     ═══════════════════════════════════════ -->
+<nav class="nav" id="nav">
+    <div class="nav-inner">
+        <div class="nav-brand">
+            <a href="#hero" class="nav-logo">BRISE</a>
+            <div class="nav-separator"></div>
+            <span class="nav-tagline">Piloto: Farmacêutica<span class="cursor">_</span></span>
+        </div>
+        <ul class="nav-links" id="navLinks">
+            <li><a href="#hero" class="active">Início</a></li>
+            <li><a href="highlights.html" style="color:var(--accent);">Highlights</a></li>
+            <li><a href="#desafio">O desafio</a></li>
+            <li><a href="#solucao">Solução</a></li>
+            <li><a href="#dados">Dados</a></li>
+            <li><a href="#pca">PCA</a></li>
+            <li><a href="#impacto">Impacto</a></li>
+            <li><a href="#replicabilidade">Além da dengue</a></li>
+        </ul>
+        <button class="nav-hamburger" id="hamburger" aria-label="Menu">
+            <span></span><span></span><span></span>
+        </button>
+    </div>
+</nav>
+
+<!-- ═══════════════════════════════════════
+     HERO SECTION
+     ═══════════════════════════════════════ -->
+<section class="hero" id="hero">
+    <div class="hero-bg">
+        <img src="imagens/hero.png" alt="Mapa digital de cidade brasileira com redes neurais e dados">
+    </div>
+    <div class="hero-content">
+        <div>
+            <span class="hero-badge">Machine Learning + Epidemiologia</span>
+            <h1>
+                <strong>Inteligência Artificial</strong> no combate à dengue
+            </h1>
+        </div>
+        <p class="hero-description">
+            Cruzamos dados climáticos e epidemiológicos por meio de Machine Learning para prever surtos de dengue, oferecendo aos gestores públicos insights precisos para direcionar intervenções e políticas de saúde com maior eficiência.
+        </p>
+        <div class="hero-stats">
+            <div class="hero-stat">
+                <span class="hero-stat-value">10</span>
+                <span class="hero-stat-label">Anos de dados</span>
+            </div>
+            <div class="hero-stat">
+                <span class="hero-stat-value">4.2M</span>
+                <span class="hero-stat-label">Casos globais (2019)</span>
+            </div>
+            <div class="hero-stat">
+                <span class="hero-stat-value">5</span>
+                <span class="hero-stat-label">Componentes PCA</span>
+            </div>
+            <div class="hero-stat">
+                <span class="hero-stat-value">73.5%</span>
+                <span class="hero-stat-label">Acurácia do modelo</span>
+            </div>
+        </div>
+    </div>
+    <div class="hero-scroll-indicator">
+        <span>Scroll</span>
+        <div class="scroll-arrow"></div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     O DESAFIO
+     ═══════════════════════════════════════ -->
+<section class="section" id="desafio">
+    <div class="section-inner">
+        <div class="reveal">
+            <span class="section-label">01 — O problema</span>
+            <h2 class="section-title">Uma ameaça constante<br>e complexa</h2>
+            <p class="section-description">
+                Desde 1981, a dengue se consolidou como endemia no Brasil. A complexidade de fatores torna o controle e a previsão extremamente desafiadores.
+            </p>
+        </div>
+
+        <div class="challenge-grid">
+            <div class="challenge-image reveal reveal-delay-1">
+                <img src="imagens/desafio.png" alt="Mosquito Aedes aegypti em ambiente urbano brasileiro" loading="lazy">
+            </div>
+            <div class="challenge-cards">
+                <div class="card reveal reveal-delay-1">
+                    <div class="card-icon red">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <h3>Múltiplas variantes</h3>
+                    <p>Os sorotipos DENV-1 a DENV-4 circulam pelo território nacional. A infecção por um tipo não oferece imunidade contra os outros, mantendo a população suscetível.</p>
+                </div>
+                <div class="card reveal reveal-delay-2">
+                    <div class="card-icon orange">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 17h8m-8-4h8m-8-4h8M3 17l4-4-4-4"/></svg>
+                    </div>
+                    <h3>Impacto sazonal severo</h3>
+                    <p>Em 2019, uma nova variante do DENV-2 provocou um aumento de até <span class="stat-highlight">149%</span> nos casos em alguns estados brasileiros.</p>
+                </div>
+                <div class="card reveal reveal-delay-3">
+                    <div class="card-icon yellow">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v1m0 16v1m8.66-13.66l-.71.71M4.05 19.95l-.71.71M21 12h-1M4 12H3m16.95 7.95l-.71-.71M4.05 4.05l-.71-.71"/></svg>
+                    </div>
+                    <h3>Condições favoráveis ao vetor</h3>
+                    <p>O clima tropical oferece condições ideais para a reprodução do <em>Aedes aegypti</em>, intensificado pelo descarte inadequado de resíduos e falta de saneamento.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     SOLUÇÃO
+     ═══════════════════════════════════════ -->
+<section class="section" id="solucao">
+    <div class="section-inner">
+        <div class="reveal">
+            <span class="section-label">02 — Nossa abordagem</span>
+            <h2 class="section-title">Democratizando a previsão<br>com inteligência artificial</h2>
+            <p class="section-description">
+                Aplicamos o que há de mais moderno em Machine Learning. Estudos recentes já demonstram que o cruzamento de dados ambientais pode prever surtos de dengue.
+            </p>
+        </div>
+
+        <div class="solution-grid">
+            <div class="solution-features">
+                <div class="feature reveal reveal-delay-1">
+                    <div class="feature-number">01</div>
+                    <div>
+                        <h3>Automação avançada</h3>
+                        <p>Incorporamos ferramentas como AutoML e TPOT, que utiliza programação genética para explorar milhares de possibilidades e encontrar a configuração ideal de previsão.</p>
+                    </div>
+                </div>
+                <div class="feature reveal reveal-delay-2">
+                    <div class="feature-number">02</div>
+                    <div>
+                        <h3>Acessibilidade</h3>
+                        <p>Além de acelerar a produção de modelos preditivos, nossa abordagem visa democratizar o uso da IA, tornando o Machine Learning acessível a um público mais amplo.</p>
+                    </div>
+                </div>
+                <div class="feature reveal reveal-delay-3">
+                    <div class="feature-number">03</div>
+                    <div>
+                        <h3>Foco no resultado</h3>
+                        <p>Objetivo central: oferecer um método mais rápido, otimizado e eficiente para prever surtos de dengue antes que eles aconteçam.</p>
+                    </div>
+                </div>
+
+                <div class="code-block reveal reveal-delay-4">
+<span class="comment"># Pipeline AutoML com TPOT</span>
+<span class="keyword">from</span> tpot <span class="keyword">import</span> TPOTRegressor
+
+pipeline = <span class="function">TPOTRegressor</span>(
+    generations=<span class="number">100</span>,
+    population_size=<span class="number">100</span>,
+    scoring=<span class="string">'neg_mean_squared_error'</span>,
+    cv=<span class="number">5</span>,
+    random_state=<span class="number">42</span>
+)
+pipeline.<span class="function">fit</span>(X_train, y_train)
+                </div>
+            </div>
+            <div class="solution-image reveal">
+                <img src="imagens/02.jpg" alt="Vista aérea de cidade brasileira com rede de dados sobreposta" loading="lazy">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     DIVIDER — PÁGINA 2
+     ═══════════════════════════════════════ -->
+<div class="page-divider">
+    <div class="page-divider-line">
+        <span class="page-divider-label">A ciência dos dados</span>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     DATA HEADER
+     ═══════════════════════════════════════ -->
+<section class="data-header" id="dados">
+    <div class="data-header-bg">
+        <img src="imagens/motor-previsao.png" alt="Globo digital com fluxos de dados climáticos e de saúde">
+    </div>
+    <div class="data-header-content">
+        <div class="reveal">
+            <span class="section-label">03 — Metodologia</span>
+            <h2 class="section-title">O motor da previsão:<br>cruzando clima e saúde pública</h2>
+            <p class="section-description">
+                Nosso projeto não trabalha com achismos; ele é fundamentado em uma década de dados históricos rigorosamente processados.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     DATA SOURCES
+     ═══════════════════════════════════════ -->
+<section class="section">
+    <div class="section-inner">
+        <div class="reveal">
+            <span class="section-label">03.1 — Fontes de dados</span>
+            <h2 class="section-title">Duas realidades, uma inteligência</h2>
+        </div>
+
+        <div class="data-sources-grid">
+            <div class="source-cards">
+                <div class="source-card reveal reveal-delay-1">
+                    <div class="source-card-header">
+                        <span class="source-card-tag epi">Epidemiológico</span>
+                        <h3>DATASUS</h3>
+                    </div>
+                    <p>Histórico completo de casos de dengue em Presidente Prudente (SP) entre <strong>2014 e 2024</strong>, analisados semana a semana por meio de semanas epidemiológicas.</p>
+                </div>
+                <div class="source-card reveal reveal-delay-2">
+                    <div class="source-card-header">
+                        <span class="source-card-tag clima">Climático</span>
+                        <h3>INMET</h3>
+                    </div>
+                    <p>Dados meteorológicos horários do Instituto Nacional de Meteorologia para o mesmo período de <strong>10 anos</strong>: temperatura, umidade, precipitação e pressão atmosférica.</p>
+                </div>
+                <div class="source-card reveal reveal-delay-3">
+                    <p style="color: var(--text-muted); font-size: 0.85rem; font-style: italic; font-weight: 300;">
+                        Os dados climáticos foram minuciosamente tratados para preencher lacunas e ajustados em médias semanais para sincronizar perfeitamente com os registros médicos da dengue.
+                    </p>
+                </div>
+            </div>
+            <div class="solution-image reveal">
+                <img src="imagens/03-1.jpg" alt="Pluviômetro em campo aberto com UBS do SUS ao fundo em cidade brasileira" loading="lazy">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     PCA ANALYSIS
+     ═══════════════════════════════════════ -->
+<section class="section" id="pca">
+    <div class="section-inner">
+        <div class="reveal">
+            <span class="section-label">03.2 — Análise PCA</span>
+            <h2 class="section-title">Encontrando a agulha<br>no palheiro</h2>
+            <p class="section-description">
+                Com milhares de pontos de dados, utilizamos a Análise de Componentes Principais para reduzir a complexidade e revelar as variáveis de maior impacto.
+            </p>
+        </div>
+
+        <div class="pca-grid">
+            <div class="pca-components">
+                <div class="pca-card reveal reveal-delay-1">
+                    <span class="pca-badge pc1">PC1</span>
+                    <div>
+                        <h4>O peso do longo prazo</h4>
+                        <p>A temperatura do ponto de orvalho e a chuva acumulada ao longo de várias semanas (4-8 semanas) são os fatores mais fortes. O clima de semanas atrás dita o surto de hoje.</p>
+                    </div>
+                </div>
+                <div class="pca-card reveal reveal-delay-2">
+                    <span class="pca-badge pc2">PC2</span>
+                    <div>
+                        <h4>O choque térmico</h4>
+                        <p>Flutuações marcantes nas temperaturas e na pressão atmosférica ditam o ritmo diário e sazonal do vetor.</p>
+                    </div>
+                </div>
+                <div class="pca-card reveal reveal-delay-3">
+                    <span class="pca-badge pc3">PC3</span>
+                    <div>
+                        <h4>Eventos extremos</h4>
+                        <p>Variações abruptas (secas intensas ou chuvas torrenciais repentinas) funcionam como gatilhos rápidos para a doença.</p>
+                    </div>
+                </div>
+                <div class="pca-card reveal reveal-delay-4">
+                    <span class="pca-badge pc4">PC4</span>
+                    <div>
+                        <h4>Vento e umidade</h4>
+                        <p>Nuances no comportamento dos ventos e da umidade relativa completam o quebra-cabeça da proliferação do <em>Aedes aegypti</em>.</p>
+                    </div>
+                </div>
+                <div class="pca-card reveal reveal-delay-4">
+                    <span class="pca-badge pc5">PC5</span>
+                    <div>
+                        <h4>Ventilação urbana</h4>
+                        <p>Velocidade média do vento e rajadas máximas revelam como a ventilação afeta a dinâmica do mosquito.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="pca-image reveal">
+                <img src="imagens/03-2.jpg" alt="Prisma de vidro refratando luz caótica em cinco feixes verdes distintos" loading="lazy">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     CONCLUSION — IMPACTO
+     ═══════════════════════════════════════ -->
+<section class="section" id="impacto">
+    <div class="section-inner">
+        <div class="reveal">
+            <span class="section-label">04 — Impacto</span>
+            <h2 class="section-title">De dados a ações<br>direcionadas</h2>
+            <p class="section-description">
+                O verdadeiro valor dos dados está em como eles são utilizados. Nossa ferramenta transforma registros brutos em inteligência estratégica.
+            </p>
+        </div>
+
+        <div class="conclusion-grid">
+            <div class="conclusion-points">
+                <div class="conclusion-point reveal reveal-delay-1">
+                    <div class="conclusion-point-icon accent">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--accent)"><path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.66 0 3-4.03 3-9s-1.34-9-3-9m0 18c-1.66 0-3-4.03-3-9s1.34-9 3-9"/></svg>
+                    </div>
+                    <div>
+                        <h3>Intervenções direcionadas</h3>
+                        <p>Insights mais precisos e tempestivos para as autoridades de saúde pública, permitindo ação antes que o surto se espalhe.</p>
+                    </div>
+                </div>
+                <div class="conclusion-point reveal reveal-delay-2">
+                    <div class="conclusion-point-icon terra">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--terra)"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <div>
+                        <h3>Otimização de recursos</h3>
+                        <p>Campanhas de conscientização e medidas de controle aplicadas nos locais e momentos corretos, antes que o surto aconteça.</p>
+                    </div>
+                </div>
+                <div class="conclusion-point reveal reveal-delay-3">
+                    <div class="conclusion-point-icon accent">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--accent)"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    </div>
+                    <div>
+                        <h3>Colaboração interdisciplinar</h3>
+                        <p>Integração entre epidemiologia, climatologia e ciência de dados para mitigar o impacto de doenças transmitidas por vetores.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="conclusion-image reveal">
+                <img src="imagens/impacto.png" alt="Gestora de saúde pública analisando dashboard de risco de dengue" loading="lazy">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     REPLICABILIDADE
+     ═══════════════════════════════════════ -->
+<section class="section" id="replicabilidade">
+    <div class="section-inner">
+        <div class="reveal">
+            <span class="section-label">05 — Além da dengue</span>
+            <h2 class="section-title">Dengue é o piloto.<br>O modelo é replicável.</h2>
+            <p class="section-description">
+                Qualquer doença cuja incidência varia com o clima pode ser prevista com a mesma abordagem. O motor é genérico; os dados mudam. Para a indústria farmacêutica, isso significa antecipar demanda com semanas de vantagem.
+            </p>
+        </div>
+
+        <div class="conclusion-grid">
+            <div class="conclusion-points">
+                <div class="conclusion-point reveal reveal-delay-1">
+                    <div class="conclusion-point-icon terra">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--terra)"><path d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+                    </div>
+                    <div>
+                        <h3>Arboviroses</h3>
+                        <p>Dengue, zika, chikungunya, febre amarela urbana. Mesmo vetor, mesma lógica climática.</p>
+                    </div>
+                </div>
+                <div class="conclusion-point reveal reveal-delay-2">
+                    <div class="conclusion-point-icon accent">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--accent)"><path d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
+                    </div>
+                    <div>
+                        <h3>Doenças respiratórias</h3>
+                        <p>Gripe, bronquite, asma sazonal, pneumonia. Picos de inverno previsíveis por padrões climáticos.</p>
+                    </div>
+                </div>
+                <div class="conclusion-point reveal reveal-delay-3">
+                    <div class="conclusion-point-icon terra">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--terra)"><path d="M12 3v1m0 16v1m8.66-13.66l-.71.71M4.05 19.95l-.71.71M21 12h-1M4 12H3m16.95 7.95l-.71-.71M4.05 4.05l-.71-.71"/></svg>
+                    </div>
+                    <div>
+                        <h3>Alergias sazonais</h3>
+                        <p>Rinite, conjuntivite, dermatite atópica. Umidade e temperatura ditam a demanda por anti-histamínicos.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="conclusion-image reveal">
+                <img src="imagens/02.jpg" alt="Vista aérea de cidade brasileira com rede de dados" loading="lazy">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     FINAL BANNER
+     ═══════════════════════════════════════ -->
+<section class="impact-banner">
+    <div class="reveal">
+        <h2><strong>Quem sabe onde o próximo pico vai acontecer</strong> distribui melhor, estoca melhor, vende melhor.</h2>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     FOOTER
+     ═══════════════════════════════════════ -->
+<footer class="footer">
+    <p>BRISE Dengue — Previsão de dengue com inteligência artificial</p>
+    <div class="tech-stack">
+        <span class="tech-tag">Python</span>
+        <span class="tech-tag">XGBClassifier</span>
+        <span class="tech-tag">PCA</span>
+        <span class="tech-tag">DATASUS</span>
+        <span class="tech-tag">INMET</span>
+        <span class="tech-tag">Presidente Prudente - SP</span>
+    </div>
+</footer>
+
+<!-- ═══════════════════════════════════════
+     JAVASCRIPT
+     ═══════════════════════════════════════ -->
+<script>
+    // Nav scroll effect — hide on scroll down, show on scroll up
+    const nav = document.getElementById('nav');
+    let lastScrollY = 0;
+
+    window.addEventListener('scroll', () => {
+        const scrollY = window.scrollY;
+        nav.classList.toggle('scrolled', scrollY > 50);
+
+        if (scrollY > lastScrollY && scrollY > 200) {
+            nav.classList.add('nav-hidden');
+        } else {
+            nav.classList.remove('nav-hidden');
+        }
+        lastScrollY = scrollY;
+    });
+
+    // Hamburger menu
+    const hamburger = document.getElementById('hamburger');
+    const navLinks = document.getElementById('navLinks');
+    hamburger.addEventListener('click', () => {
+        navLinks.classList.toggle('open');
+    });
+
+    // Close mobile menu on link click
+    navLinks.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => navLinks.classList.remove('open'));
+    });
+
+    // Active nav link on scroll
+    const sections = document.querySelectorAll('section[id]');
+    window.addEventListener('scroll', () => {
+        const scrollY = window.scrollY + 200;
+        sections.forEach(section => {
+            const top = section.offsetTop;
+            const height = section.offsetHeight;
+            const id = section.getAttribute('id');
+            const link = navLinks.querySelector(`a[href="#${id}"]`);
+            if (link) {
+                link.classList.toggle('active', scrollY >= top && scrollY < top + height);
+            }
+        });
+    });
+
+    // Hero parallax
+    const heroBg = document.querySelector('.hero-bg');
+    const heroContent = document.querySelector('.hero-content');
+
+    function handleHeroParallax() {
+        const scrollY = window.scrollY;
+        const heroHeight = document.querySelector('.hero').offsetHeight;
+        if (scrollY < heroHeight) {
+            const progress = scrollY / heroHeight;
+            heroBg.style.transform = `translateY(${scrollY * 0.4}px)`;
+            heroContent.style.opacity = Math.max(1 - progress * 2.2, 0);
+            heroContent.style.transform = `translateY(${scrollY * -0.15}px)`;
+        }
+    }
+
+    window.addEventListener('scroll', () => requestAnimationFrame(handleHeroParallax));
+
+    // Scroll reveal with Intersection Observer
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, {
+        threshold: 0.15,
+        rootMargin: '0px 0px -50px 0px'
+    });
+
+    document.querySelectorAll('.reveal, .reveal-left').forEach(el => observer.observe(el));
+
+    // Animate stat values
+    function animateValue(el, start, end, duration, suffix = '') {
+        const range = end - start;
+        const startTime = performance.now();
+        function update(currentTime) {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            const current = Math.floor(start + range * eased);
+            el.textContent = current.toLocaleString('pt-BR') + suffix;
+            if (progress < 1) requestAnimationFrame(update);
+        }
+        requestAnimationFrame(update);
+    }
+
+    // Animate stats when hero is visible
+    const heroObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const stats = entry.target.querySelectorAll('.hero-stat-value');
+                if (stats[0]) animateValue(stats[0], 0, 10, 1200);
+                if (stats[1]) {
+                    const startTime = performance.now();
+                    function animateM(currentTime) {
+                        const elapsed = currentTime - startTime;
+                        const progress = Math.min(elapsed / 1200, 1);
+                        const eased = 1 - Math.pow(1 - progress, 3);
+                        const val = (4.2 * eased).toFixed(1);
+                        stats[1].textContent = val + 'M';
+                        if (progress < 1) requestAnimationFrame(animateM);
+                    }
+                    requestAnimationFrame(animateM);
+                }
+                if (stats[2]) animateValue(stats[2], 0, 5, 1000);
+                heroObserver.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.3 });
+
+    const heroStats = document.querySelector('.hero-stats');
+    if (heroStats) heroObserver.observe(heroStats);
+</script>
+
+</body>
+</html>

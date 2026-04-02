@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BRISE Dengue — Highlights</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='4' fill='%230b1a0f'/><text x='16' y='22' font-family='sans-serif' font-weight='400' font-size='18' fill='%23a6e22e' text-anchor='middle'>B</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat+Alternates:wght@400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0b1a0f;
+            --bg-secondary: #0f2214;
+            --bg-elevated: #132a18;
+            --bg-light: #162e1c;
+            --text-primary: #e2ebe4;
+            --text-secondary: #9ab5a3;
+            --text-muted: #4a6b50;
+            --accent: #a6e22e;
+            --accent-soft: rgba(166, 226, 46, 0.12);
+            --accent-glow: rgba(166, 226, 46, 0.06);
+            --terra: hsl(20, 70%, 55%);
+            --terra-soft: hsla(20, 70%, 55%, 0.12);
+            --border: #1e3a24;
+            --border-light: #2a4d32;
+            --font-logo: 'Montserrat Alternates', sans-serif;
+            --font-display: 'Space Grotesk', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --font-body: 'IBM Plex Sans', sans-serif;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { font-size: 16px; }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        ::selection {
+            background: var(--accent-soft);
+            color: #ffffff;
+        }
+
+        /* ═══ TOP BAR ═══ */
+        .topbar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 100;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            background: rgba(11, 26, 15, 0.92);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .topbar-logo {
+            font-family: var(--font-logo);
+            font-size: 1.2rem;
+            font-weight: 400;
+            letter-spacing: 0.12em;
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .topbar-sep {
+            width: 1px;
+            height: 20px;
+            background: var(--border);
+        }
+
+        .topbar-label {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .topbar-counter {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            letter-spacing: 0.06em;
+        }
+
+        .topbar-counter .current { color: var(--accent); }
+
+        .btn-close {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 6px 16px;
+            border: 1px solid var(--border);
+            background: none;
+            cursor: pointer;
+            transition: border-color 300ms ease, color 300ms ease;
+        }
+
+        .btn-close:hover {
+            border-color: var(--border-light);
+            color: var(--text-primary);
+        }
+
+        /* ═══ SLIDES ═══ */
+        .slides-wrapper {
+            position: fixed;
+            top: 56px; left: 0; right: 0; bottom: 0;
+            display: flex;
+            transition: transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .slide {
+            min-width: 100vw;
+            height: calc(100vh - 56px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 80px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Cross texture */
+        .slide::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E%3Cline x1='39' y1='45' x2='51' y2='45' stroke='%23e2ebe4' stroke-width='1.2'/%3E%3Cline x1='45' y1='39' x2='45' y2='51' stroke='%23e2ebe4' stroke-width='1.2'/%3E%3C/svg%3E");
+            background-size: 90px 90px;
+            opacity: 0.05;
+        }
+
+        .slide-content {
+            max-width: 1120px;
+            width: 100%;
+            display: grid;
+            gap: 48px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 500ms ease-out 200ms, transform 500ms ease-out 200ms;
+        }
+
+        .slide.active .slide-content {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Layouts */
+        .layout-split {
+            grid-template-columns: 1.2fr 1fr;
+            align-items: center;
+            gap: 64px;
+        }
+
+        .layout-image-left {
+            grid-template-columns: 1fr 1.2fr;
+            align-items: center;
+            gap: 64px;
+        }
+
+        .layout-statement {
+            text-align: center;
+            justify-items: center;
+            max-width: 780px;
+        }
+
+        /* ═══ SLIDE IMAGE ═══ */
+        .slide-image {
+            width: 100%;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            position: relative;
+        }
+
+        .slide-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .slide-image.tall {
+            max-height: 420px;
+        }
+
+        .slide-image.tall img {
+            height: 420px;
+        }
+
+        /* ═══ TYPOGRAPHY ═══ */
+        .slide-tag {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .slide-tag::before { content: '// '; }
+
+        .slide-title {
+            font-family: var(--font-display);
+            font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+            font-weight: 300;
+            line-height: 1.2;
+            letter-spacing: -0.03em;
+        }
+
+        .slide-title strong {
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .slide-title em {
+            font-style: normal;
+            font-weight: 600;
+            color: var(--terra);
+        }
+
+        .slide-body {
+            font-family: var(--font-body);
+            font-size: 1.05rem;
+            font-weight: 300;
+            color: var(--text-secondary);
+            line-height: 1.85;
+            max-width: 560px;
+        }
+
+        /* Stats */
+        .slide-stat-row {
+            display: flex;
+            gap: 48px;
+            flex-wrap: wrap;
+        }
+
+        .slide-stat {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .slide-stat-value {
+            font-family: var(--font-mono);
+            font-size: 2.4rem;
+            font-weight: 500;
+            color: var(--accent);
+            line-height: 1;
+        }
+
+        .slide-stat-value.terra { color: var(--terra); }
+
+        .slide-stat-label {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-top: 8px;
+        }
+
+        /* Cards */
+        .slide-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .slide-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-left: 2px solid var(--accent);
+            padding: 20px 24px;
+        }
+
+        .slide-card.terra { border-left-color: var(--terra); }
+
+        .slide-card-title {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            font-weight: 500;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 6px;
+        }
+
+        .slide-card.terra .slide-card-title { color: var(--terra); }
+
+        .slide-card p {
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+            font-weight: 300;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* Statement */
+        .slide-statement {
+            font-family: var(--font-display);
+            font-size: clamp(1.4rem, 3vw, 1.9rem);
+            font-weight: 300;
+            line-height: 1.5;
+            text-align: center;
+            max-width: 640px;
+        }
+
+        .slide-statement strong { font-weight: 500; color: var(--accent); }
+        .slide-statement em { font-style: normal; color: var(--terra); }
+
+        .slide-divider {
+            width: 100%;
+            max-width: 200px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent), var(--terra), transparent);
+            opacity: 0.4;
+        }
+
+        /* ═══ NAVIGATION ═══ */
+        .nav-arrows {
+            position: fixed;
+            bottom: 40px;
+            left: 0; right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            z-index: 50;
+        }
+
+        .nav-arrow {
+            width: 48px;
+            height: 48px;
+            border: 1px solid var(--border);
+            background: rgba(11, 26, 15, 0.8);
+            backdrop-filter: blur(10px);
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: border-color 300ms ease, color 300ms ease;
+        }
+
+        .nav-arrow:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .nav-arrow:disabled {
+            opacity: 0.3;
+            cursor: default;
+        }
+
+        .nav-arrow:disabled:hover {
+            border-color: var(--border);
+            color: var(--text-secondary);
+        }
+
+        .nav-dots {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            display: flex;
+            gap: 8px;
+            z-index: 50;
+            align-items: center;
+        }
+
+        .nav-dot {
+            width: 8px;
+            height: 8px;
+            border: 1px solid var(--border-light);
+            background: transparent;
+            cursor: pointer;
+            transition: background 300ms ease, border-color 300ms ease;
+        }
+
+        .nav-dot.active {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .key-hint {
+            position: fixed;
+            bottom: 40px;
+            left: 40px;
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            letter-spacing: 0.06em;
+            opacity: 0.6;
+        }
+
+        .key-hint kbd {
+            display: inline-block;
+            padding: 2px 6px;
+            border: 1px solid var(--border);
+            background: var(--bg-secondary);
+            font-family: var(--font-mono);
+            font-size: 0.6rem;
+        }
+
+        /* ═══ RESPONSIVE ═══ */
+        @media (max-width: 768px) {
+            .slide { padding: 40px 24px; }
+            .layout-split,
+            .layout-image-left {
+                grid-template-columns: 1fr;
+                gap: 32px;
+            }
+            .slide-image.tall { max-height: 240px; }
+            .slide-image.tall img { height: 240px; }
+            .slide-stat-row { gap: 32px; }
+            .topbar { padding: 0 24px; }
+            .nav-dots, .key-hint { display: none; }
+            .nav-arrows { bottom: 24px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+    <div class="topbar-left">
+        <a href="index.html" class="topbar-logo">BRISE</a>
+        <div class="topbar-sep"></div>
+        <span class="topbar-label">Highlights</span>
+    </div>
+    <div class="topbar-right">
+        <span class="topbar-counter"><span class="current" id="counterCurrent">1</span> / <span id="counterTotal">6</span></span>
+        <a href="index.html" class="btn-close">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            Fechar
+        </a>
+    </div>
+</div>
+
+<!-- SLIDES -->
+<div class="slides-wrapper" id="slidesWrapper">
+
+    <!-- SLIDE 1 — O gap de mercado -->
+    <div class="slide active" data-slide="0">
+        <div class="slide-content layout-split">
+            <div style="display:flex;flex-direction:column;gap:24px;">
+                <span class="slide-tag">O gap de mercado</span>
+                <h1 class="slide-title">A indústria farmacêutica <em>não sabe</em> onde o próximo surto vai acontecer</h1>
+                <p class="slide-body">Doenças sensíveis ao clima (dengue, alergias, respiratórias) geram picos imprevisíveis de demanda. Estoques errados, nos lugares errados, na hora errada. Todo ano.</p>
+            </div>
+            <div class="slide-image tall">
+                <img src="imagens/desafio.png" alt="Mosquito Aedes aegypti em ambiente urbano">
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 2 — Prova de conceito -->
+    <div class="slide" data-slide="1">
+        <div class="slide-content layout-image-left">
+            <div class="slide-image tall">
+                <img src="imagens/03-1.jpg" alt="Estação meteorológica com UBS ao fundo">
+            </div>
+            <div style="display:flex;flex-direction:column;gap:24px;">
+                <span class="slide-tag">Prova de conceito</span>
+                <h1 class="slide-title">Dengue em <strong>Presidente Prudente</strong>: 10 anos, dois bancos de dados, um modelo</h1>
+                <p class="slide-body">Cruzamos dados epidemiológicos do DATASUS com dados climáticos do INMET (2014-2024) para prever surtos antes que eles aconteçam.</p>
+                <div class="slide-stat-row">
+                    <div class="slide-stat">
+                        <span class="slide-stat-value">520</span>
+                        <span class="slide-stat-label">Semanas de dados</span>
+                    </div>
+                    <div class="slide-stat">
+                        <span class="slide-stat-value">17</span>
+                        <span class="slide-stat-label">Variáveis climáticas</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 3 — Como funciona -->
+    <div class="slide" data-slide="2">
+        <div class="slide-content layout-split">
+            <div style="display:flex;flex-direction:column;gap:24px;">
+                <span class="slide-tag">Como funciona</span>
+                <h1 class="slide-title">PCA isola os <strong>5 fatores climáticos</strong> que ditam surtos</h1>
+                <div class="slide-cards">
+                    <div class="slide-card">
+                        <span class="slide-card-title">PC1 — Longo prazo</span>
+                        <p>Chuva acumulada e ponto de orvalho nas últimas 4-8 semanas. O preditor mais forte.</p>
+                    </div>
+                    <div class="slide-card terra">
+                        <span class="slide-card-title">PC2 — Choque térmico</span>
+                        <p>Flutuações bruscas de temperatura e pressão atmosférica.</p>
+                    </div>
+                    <div class="slide-card">
+                        <span class="slide-card-title">PC3-5 — Gatilhos</span>
+                        <p>Eventos extremos, variações de umidade e padrões de vento.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="slide-image tall">
+                <img src="imagens/03-2.jpg" alt="Prisma separando luz em feixes distintos">
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 4 — O insight (statement) -->
+    <div class="slide" data-slide="3">
+        <div class="slide-content layout-statement">
+            <span class="slide-tag">O insight central</span>
+            <div class="slide-divider"></div>
+            <p class="slide-statement">O clima de <strong>4 a 8 semanas atrás</strong> é o principal preditor de surtos. Isso significa que é possível <em>antecipar a demanda</em> com semanas de vantagem.</p>
+            <div class="slide-divider"></div>
+            <div class="slide-stat-row" style="justify-content:center;">
+                <div class="slide-stat" style="align-items:center;">
+                    <span class="slide-stat-value">73.5%</span>
+                    <span class="slide-stat-label">Acurácia do modelo</span>
+                </div>
+                <div class="slide-stat" style="align-items:center;">
+                    <span class="slide-stat-value">0.75</span>
+                    <span class="slide-stat-label">Validação cruzada</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 5 — A oportunidade -->
+    <div class="slide" data-slide="4">
+        <div class="slide-content layout-image-left">
+            <div class="slide-image tall">
+                <img src="imagens/02.jpg" alt="Vista aérea de cidade brasileira com rede de dados">
+            </div>
+            <div style="display:flex;flex-direction:column;gap:24px;">
+                <span class="slide-tag">A oportunidade</span>
+                <h1 class="slide-title">Dengue é o <strong>piloto</strong>.<br>O modelo é <em>replicável</em>.</h1>
+                <p class="slide-body">Qualquer doença cuja incidência varia com o clima pode ser prevista com a mesma abordagem. O motor é genérico; os dados mudam.</p>
+                <div class="slide-cards">
+                    <div class="slide-card">
+                        <span class="slide-card-title">Arboviroses</span>
+                        <p>Dengue, zika, chikungunya, febre amarela urbana.</p>
+                    </div>
+                    <div class="slide-card terra">
+                        <span class="slide-card-title">Respiratórias</span>
+                        <p>Gripe, bronquite, asma sazonal, pneumonia.</p>
+                    </div>
+                    <div class="slide-card">
+                        <span class="slide-card-title">Alergias</span>
+                        <p>Rinite alérgica, conjuntivite, dermatite atópica.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 6 — O impacto para pharma -->
+    <div class="slide" data-slide="5">
+        <div class="slide-content layout-split">
+            <div style="display:flex;flex-direction:column;gap:24px;">
+                <span class="slide-tag">O impacto</span>
+                <h1 class="slide-title">De previsão climática a <strong>supply chain inteligente</strong></h1>
+                <div class="slide-cards">
+                    <div class="slide-card">
+                        <span class="slide-card-title">Distribuição preditiva</span>
+                        <p>Estoques nas regiões certas, semanas antes do pico.</p>
+                    </div>
+                    <div class="slide-card terra">
+                        <span class="slide-card-title">Campanhas direcionadas</span>
+                        <p>Marketing e alertas ativados por previsão, não por reação.</p>
+                    </div>
+                    <div class="slide-card">
+                        <span class="slide-card-title">Saúde pública + mercado</span>
+                        <p>Gestores e indústria usando a mesma inteligência.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="slide-image tall">
+                <img src="imagens/impacto.png" alt="Dashboard de risco epidemiológico">
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- NAVIGATION -->
+<div class="nav-arrows">
+    <button class="nav-arrow" id="btnPrev" disabled>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <button class="nav-arrow" id="btnNext">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+    </button>
+</div>
+
+<div class="nav-dots" id="navDots"></div>
+
+<div class="key-hint">
+    <kbd>&larr;</kbd> <kbd>&rarr;</kbd> para navegar &middot; <kbd>esc</kbd> para fechar
+</div>
+
+<!-- JAVASCRIPT -->
+<script>
+    const wrapper = document.getElementById('slidesWrapper');
+    const slides = document.querySelectorAll('.slide');
+    const btnPrev = document.getElementById('btnPrev');
+    const btnNext = document.getElementById('btnNext');
+    const counterCurrent = document.getElementById('counterCurrent');
+    const dotsContainer = document.getElementById('navDots');
+    const total = slides.length;
+    let current = 0;
+
+    slides.forEach((_, i) => {
+        const dot = document.createElement('div');
+        dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+        dot.addEventListener('click', () => goTo(i));
+        dotsContainer.appendChild(dot);
+    });
+
+    function goTo(index) {
+        if (index < 0 || index >= total) return;
+        slides[current].classList.remove('active');
+        current = index;
+        slides[current].classList.add('active');
+        wrapper.style.transform = `translateX(-${current * 100}vw)`;
+        counterCurrent.textContent = current + 1;
+        btnPrev.disabled = current === 0;
+        btnNext.disabled = current === total - 1;
+        dotsContainer.querySelectorAll('.nav-dot').forEach((dot, i) => {
+            dot.classList.toggle('active', i === current);
+        });
+    }
+
+    btnPrev.addEventListener('click', () => goTo(current - 1));
+    btnNext.addEventListener('click', () => goTo(current + 1));
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); goTo(current + 1); }
+        if (e.key === 'ArrowLeft') { e.preventDefault(); goTo(current - 1); }
+        if (e.key === 'Escape') { window.location.href = 'index.html'; }
+    });
+
+    let touchStartX = 0;
+    wrapper.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+    wrapper.addEventListener('touchend', (e) => {
+        const diff = touchStartX - e.changedTouches[0].screenX;
+        if (Math.abs(diff) > 60) { diff > 0 ? goTo(current + 1) : goTo(current - 1); }
+    }, { passive: true });
+</script>
+
+</body>
+</html>
